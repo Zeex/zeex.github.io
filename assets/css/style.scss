@@ -3,7 +3,28 @@
 
 @import "{{ site.theme }}";
 
+$text-color: #d5e3e9;
+
 .page-header {
     background-color: #6dc602;
     background-image: linear-gradient(120deg, #4681bb, #6dc602);
+}
+
+body {
+    background: #252629;
+    color: $text-color;
+}
+
+.site-footer-credits {
+    color: $text-color;
+}
+
+a {
+    color: #37abde;
+}
+
+.main-content {
+    h1, h2, h3, h4, h5, h6 {
+        color: #67df53;
+    }
 }
