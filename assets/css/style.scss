@@ -3,7 +3,7 @@
 
 @import "{{ site.theme }}";
 
-$text-color: #d5e3e9;
+$text-color: #d3d6da;
 
 .page-header {
     background-color: #6dc602;
@@ -13,6 +13,10 @@ $text-color: #d5e3e9;
 body {
     background: #252629;
     color: $text-color;
+}
+
+.site-footer {
+    border-top: 1px solid #424242;
 }
 
 .site-footer-credits {
