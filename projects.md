@@ -56,7 +56,7 @@ A re-implementation of the rcon.exe program (remote server console software) tha
 
 A simple code editor for the Pawn programming language. It's written in Qt (C++), has syntax highlighting and built-in compiler support.
 
-**Technologies/tools used:** C++, Qt
+**Technologies/tools used:** C++, Qt, CMake
 
 # Misc
 
