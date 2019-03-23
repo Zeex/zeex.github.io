@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Pawn Compiler</title>
+
+    <style>
+      html {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        position: relative;
+        font-family: arial;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      #compile-button {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        padding: 8px 16px;
+      }
+
+      #input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: calc(100% - 16px);
+        height: calc(100% - 276px);
+        resize: none;
+        padding: 8px;
+        border: 0;
+        display: block;
+        background-color: white;
+        color: black;
+        font-family: 'Lucida Console', Monaco, monospace;
+        outline: none;
+      }
+
+      #output {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: calc(100% - 16px);
+        height: 200px;
+        resize: none;
+        padding: 8px;
+        border: 0;
+        display: block;
+        background-color: black;
+        color: white;
+        font-family: 'Lucida Console', Monaco, monospace;
+        outline: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <textarea id="input" rows="8" spellcheck="false"></textarea>
+    <textarea id="output" rows="8" spellcheck="false" readonly></textarea>
+    <button id="compile-button" type="button">Compile</button>
+
+    <script>
+      var inputArea = document.getElementById('input');
+      inputArea.value = '';
+      var compileButton = document.getElementById('compile-button');
+      var outputArea = document.getElementById('output');
+      var startedCompilerOutput = false;
+
+      compileButton.addEventListener('click', function() {
+        compile();
+      });
+
+      function compile() {
+        outputArea.value = '';
+        FS.writeFile('script.pwn', inputArea.value);
+        var args = [
+          '-;+',
+          '-(+',
+          'script.pwn'
+        ];
+
+        var argArray = _malloc(args.length * 4);
+        for (var i = 0; i < args.length; i++) {
+          var value = args[i];
+          var bufferSize = lengthBytesUTF8(value) + 1;
+          var buffer = _malloc(bufferSize);
+          stringToUTF8(value, buffer, bufferSize);
+          setValue(argArray + i * 4, buffer, 'i32');
+        }
+        ccall('pc_compile', 'number', ['number', 'number'], [args.length, argArray]);
+      }
+
+      function appendOutput(text) {
+        outputArea.value += text + '\n';
+        outputArea.scrollTop = outputArea.scrollHeight;
+      }
+
+      window.onerror = function(event) {
+        Module.setStatus('Exception thrown, see JavaScript console');
+        Module.setStatus = function(text) {
+          if (text) Module.printErr('[post-exception status] ' + text);
+        };
+      };
+
+      var Module = {
+        noInitialRun: true,
+        onRuntimeInitialized: function() {
+          // FS.writeFile('script.pwn', ' \
+          //   native print(const string[]); \
+          //   main() { \
+          //     print("Hello, World"); \
+          //   } \
+          // ');
+        },
+        print: (function() {
+          outputArea.value = '';
+          return function(text) {
+            if (arguments.length > 1) {
+              text = Array.prototype.slice.call(arguments).join(' ');
+            }
+            appendOutput(text);
+            if (/Pawn compiler 3/.test(text)) {
+              startedCompilerOutput = true;
+            }
+            console.log(text);
+          };
+        })(),
+        printErr: function(text) {
+          if (arguments.length > 1) {
+            text = Array.prototype.slice.call(arguments).join(' ');
+          }
+          if (startedCompilerOutput) {
+            appendOutput(text);
+          }
+          console.error(text);
+        },
+        setStatus: function(text) {
+          if (!Module.setStatus.last) {
+            Module.setStatus.last = { time: Date.now(), text: '' };
+          }
+          if (text === Module.setStatus.last.text) {
+            return;
+          }
+          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+          var now = Date.now();
+          if (m && now - Module.setStatus.last.time < 30) {
+            return; // if this is a progress update, skip it if too soon
+          }
+          Module.setStatus.last.time = now;
+          Module.setStatus.last.text = text;
+          if (m) {
+            text = m[1];
+          }
+        },
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        }
+      };
+
+      Module.setStatus('Downloading...');
+    </script>
+
+    <script async type="text/javascript" src="pawncc.js"></script>
+  </body>
+</html>
