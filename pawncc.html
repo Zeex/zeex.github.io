@@ -64,16 +64,19 @@
   </head>
 
   <body>
-    <textarea id="input" rows="8" spellcheck="false"></textarea>
-    <textarea id="output" rows="8" spellcheck="false" readonly></textarea>
+    <textarea id="input" rows="8" spellcheck="false" placeholder="Type in some code and hit 'Compile'"></textarea>
+    <textarea id="output" rows="8" spellcheck="false" readonly placeholder="No output"></textarea>
     <button id="compile-button" type="button">Compile</button>
 
     <script>
       var inputArea = document.getElementById('input');
-      inputArea.value = '';
       var compileButton = document.getElementById('compile-button');
       var outputArea = document.getElementById('output');
       var startedCompilerOutput = false;
+
+      inputArea.value = 'main() {\n'
+        + '    // Your code goes here\n'
+        + '}\n';
 
       compileButton.addEventListener('click', function() {
         compile();
@@ -114,12 +117,7 @@
       var Module = {
         noInitialRun: true,
         onRuntimeInitialized: function() {
-          // FS.writeFile('script.pwn', ' \
-          //   native print(const string[]); \
-          //   main() { \
-          //     print("Hello, World"); \
-          //   } \
-          // ');
+          compile();
         },
         print: (function() {
           outputArea.value = '';
