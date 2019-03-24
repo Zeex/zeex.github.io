@@ -90,6 +90,7 @@
               placeholder="No compiler output"></textarea>
 
     <div class="action-buttons">
+      <button type="button" id="save-button" class="action-button">Save (Ctrl+S)</button>
       <button type="button" id="compile-button" class="action-button">Compile</button>
       <button type="button" id="download-button" class="action-button">Download AMX</button>
     </div>
@@ -101,6 +102,7 @@
       var editor;
       var inputArea = document.getElementById('input');
       var outputArea = document.getElementById('output');
+      var saveButton = document.getElementById('save-button');
       var compileButton = document.getElementById('compile-button');
       var downloadButton = document.getElementById('download-button');
       var startedCompilerOutput = false;
@@ -145,16 +147,26 @@
         outputArea.scrollTop = outputArea.scrollHeight;
       }
 
-      function triggerFileDownload(data, fileName) {
-        var decoder = new TextDecoder('utf8');
+      function triggerFileDownload(url, fileName) {
         var element = document.createElement('a');
-        element.setAttribute('href', 
-          'data:application/octet-stream;charset=utf-8;base64,' + binaryToBase64(data));
+        element.setAttribute('href', url);
         element.setAttribute('download', fileName);
         element.style.display = 'none';
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
+      }
+
+      function triggerTextFileDownload(text, fileName) {
+        triggerFileDownload(
+          'data:text/plain;charset=utf-8,' + encodeURIComponent(text),
+          fileName)
+      }
+
+      function triggerBinaryFileDownload(data, fileName) {
+        triggerFileDownload(
+          'data:application/octet-stream;charset=utf-8;base64,' + binaryToBase64(data),
+          fileName);
       }
 
       function saveToLocalStorage() {
@@ -178,6 +190,15 @@
           }
         };
       };
+
+      window.addEventListener('keydown', function() {
+        var keyChar = String.fromCharCode(event.which).toLowerCase();
+        if ((event.ctrlKey || event.metaKey) && keyChar == 's') {
+          event.preventDefault();
+          saveToLocalStorage();
+          triggerTextFileDownload(editor.getValue(), 'script.pwn');
+        }
+      });
 
       var Module = {
         noInitialRun: true,
@@ -252,15 +273,21 @@
         editor.focus();
         editor.display.wrapper.id = 'editor';
 
-        downloadButton.addEventListener('click', function() {
-          if (lastCompileStatus == 0) {
-            var data = FS.readFile('script.amx', {encoding: 'binary'});
-            triggerFileDownload(data, 'script.amx');
-          }
+        saveButton.addEventListener('click', function() {
+          saveToLocalStorage();
+          triggerTextFileDownload(editor.getValue(), 'script.pwn');
         });
 
         compileButton.addEventListener('click', function() {
           compile();
+        });
+
+        downloadButton.disabled = true;
+        downloadButton.addEventListener('click', function() {
+          if (lastCompileStatus == 0) {
+            var data = FS.readFile('script.amx', {encoding: 'binary'});
+            triggerBinaryFileDownload(data, 'script.amx');
+          }
         });
 
         setInterval(function() {
