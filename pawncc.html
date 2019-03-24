@@ -191,7 +191,7 @@
         };
       };
 
-      window.addEventListener('keydown', function() {
+      window.addEventListener('keydown', function(event) {
         var keyChar = String.fromCharCode(event.which).toLowerCase();
         if ((event.ctrlKey || event.metaKey) && keyChar == 's') {
           event.preventDefault();
