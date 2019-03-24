@@ -87,7 +87,7 @@
     <textarea id="output"
               spellcheck="false" 
               readonly 
-              placeholder="No output"></textarea>
+              placeholder="No compiler output"></textarea>
 
     <div class="action-buttons">
       <button type="button" id="compile-button" class="action-button">Compile</button>
@@ -98,6 +98,7 @@
     <script src="lib/codemirror/mode/clike/clike.js"></script>
     <script src="lib/codemirror/mode/javascript/javascript.js"></script>
     <script>
+      var editor;
       var inputArea = document.getElementById('input');
       var outputArea = document.getElementById('output');
       var compileButton = document.getElementById('compile-button');
@@ -113,30 +114,19 @@
         return btoa(string);
       }
 
-      function triggerFileDownload(data, fileName) {
-        var decoder = new TextDecoder('utf8');
-        var element = document.createElement('a');
-        element.setAttribute('href', 
-          'data:application/octet-stream;charset=utf-8;base64,' + binaryToBase64(data));
-        element.setAttribute('download', fileName);
-        element.style.display = 'none';
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-      }
-
       function compile() {
         startedCompilerOutput = false;
         outputArea.value = '';
 
+        saveToLocalStorage();
         FS.writeFile('script.pwn', editor.getValue());
+
         var args = [
           'pawncc',
           '-;+',
           '-(+',
           'script.pwn'
         ];
-
         var argArray = _malloc(args.length * 4);
         for (var i = 0; i < args.length; i++) {
           var value = args[i];
@@ -155,6 +145,31 @@
         outputArea.scrollTop = outputArea.scrollHeight;
       }
 
+      function triggerFileDownload(data, fileName) {
+        var decoder = new TextDecoder('utf8');
+        var element = document.createElement('a');
+        element.setAttribute('href', 
+          'data:application/octet-stream;charset=utf-8;base64,' + binaryToBase64(data));
+        element.setAttribute('download', fileName);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+
+      function saveToLocalStorage() {
+        if (localStorage) {
+          localStorage.setItem('code', editor.getValue());
+        }
+      }
+
+      function getSavedCode() {
+        if (localStorage) {
+          return localStorage.getItem('code');
+        }
+        return null;
+      }
+
       window.onerror = function(event) {
         Module.setStatus('Exception thrown, see JavaScript console');
         Module.setStatus = function(text) {
@@ -166,9 +181,6 @@
 
       var Module = {
         noInitialRun: true,
-        onRuntimeInitialized: function() {
-          compile();
-        },
         print: (function() {
           outputArea.value = '';
           return function(text) {
@@ -220,31 +232,42 @@
 
       Module.setStatus('Downloading...');
 
-      var sampleCode = 'main() {\n'
-        + '    // Your code goes here\n'
-        + '}\n';
-      var editor = CodeMirror.fromTextArea(inputArea, {
-        lineNumbers: true,
-        mode: 'text/x-c++src',
-        indentUnit: 4,
-        tabSize: 4,
-        indentWithTabs: false,
-        theme: 'github-light'
-      });
-      editor.setValue(sampleCode);
-      editor.focus();
-      editor.display.wrapper.id = 'editor';
-
-      downloadButton.addEventListener('click', function() {
-        if (lastCompileStatus == 0) {
-          var data = FS.readFile('script.amx', {encoding: 'binary'});
-          triggerFileDownload(data, 'script.amx');
+      (function() {
+        var code = 'main() {\n'
+          + '    // Your code goes here\n'
+          + '}';
+        editor = CodeMirror.fromTextArea(inputArea, {
+          lineNumbers: true,
+          mode: 'text/x-c++src',
+          indentUnit: 4,
+          tabSize: 4,
+          indentWithTabs: false,
+          theme: 'github-light'
+        });
+        var previousCode = getSavedCode();
+        if (previousCode) {
+          code = previousCode;
         }
-      });
+        editor.setValue(code);
+        editor.focus();
+        editor.display.wrapper.id = 'editor';
 
-      compileButton.addEventListener('click', function() {
-        compile();
-      });
+        downloadButton.addEventListener('click', function() {
+          if (lastCompileStatus == 0) {
+            var data = FS.readFile('script.amx', {encoding: 'binary'});
+            triggerFileDownload(data, 'script.amx');
+          }
+        });
+
+        compileButton.addEventListener('click', function() {
+          compile();
+        });
+
+        setInterval(function() {
+          console.log('Automatically saving code');
+          saveToLocalStorage();
+        }, 30000);
+      })();
     </script>
 
     <script async type="text/javascript" src="pawncc.js"></script>
