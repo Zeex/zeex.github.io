@@ -86,6 +86,7 @@
         outputArea.value = '';
         FS.writeFile('script.pwn', inputArea.value);
         var args = [
+          'pawncc',
           '-;+',
           '-(+',
           'script.pwn'
