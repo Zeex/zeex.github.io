@@ -7,11 +7,6 @@ title: Hello World!
 [Check out my projects](projects)<br>
 [My GitHub profile](https://github.com/Zeex)
 
-# Other
-
-[Pawn compiler inside your browser (powered by WebAssembly)](pawncc.html)
-=======
-
-# Other
+# Other links
 
 [Pawn compiler inside your browser (powered by WebAssembly)](pawncc)
