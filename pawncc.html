@@ -5,6 +5,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Pawn Compiler</title>
 
+    <link rel="stylesheet" href="lib/codemirror/codemirror.css">
+    <link rel="stylesheet" href="lib/codemirror/theme/github-light.css">
     <style>
       html {
         width: 100%;
@@ -13,6 +15,7 @@
 
       body {
         position: relative;
+        font-size: 15px;
         font-family: arial;
         width: 100%;
         height: 100%;
@@ -22,9 +25,10 @@
 
       #compile-button {
         position: absolute;
-        right: 8px;
+        right: 24px;
         top: 8px;
         padding: 8px 16px;
+        z-index: 10;
       }
 
       #input {
@@ -40,8 +44,11 @@
         display: block;
         background-color: white;
         color: black;
-        font-family: 'Lucida Console', Monaco, monospace;
         outline: none;
+      }
+
+      #editor {
+        height: calc(100% - 217px);
       }
 
       #output {
@@ -55,10 +62,15 @@
         padding: 8px;
         border: 0;
         display: block;
-        background-color: black;
+        background-color: #181818;
         color: white;
-        font-family: 'Lucida Console', Monaco, monospace;
         outline: none;
+      }
+
+      #input,
+      #editor,
+      #output {
+        font-family: Consolas, 'Source Code Pro', Monaco, monospace;
       }
     </style>
   </head>
@@ -68,15 +80,29 @@
     <textarea id="output" rows="8" spellcheck="false" readonly placeholder="No output"></textarea>
     <button id="compile-button" type="button">Compile</button>
 
+    <script src="lib/codemirror/codemirror.js"></script>
+    <script src="lib/codemirror/mode/clike/clike.js"></script>
+    <script src="lib/codemirror/mode/javascript/javascript.js"></script>
     <script>
       var inputArea = document.getElementById('input');
       var compileButton = document.getElementById('compile-button');
       var outputArea = document.getElementById('output');
       var startedCompilerOutput = false;
 
-      inputArea.value = 'main() {\n'
+      var sampleCode = 'main() {\n'
         + '    // Your code goes here\n'
         + '}\n';
+      var editor = CodeMirror.fromTextArea(inputArea, {
+        lineNumbers: true,
+        mode: 'text/x-c++src',
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        theme: 'github-light'
+      });
+      editor.setValue(sampleCode);
+      editor.focus();
+      editor.display.wrapper.id = 'editor';
 
       compileButton.addEventListener('click', function() {
         compile();
@@ -84,7 +110,7 @@
 
       function compile() {
         outputArea.value = '';
-        FS.writeFile('script.pwn', inputArea.value);
+        FS.writeFile('script.pwn', editor.getValue());
         var args = [
           'pawncc',
           '-;+',
