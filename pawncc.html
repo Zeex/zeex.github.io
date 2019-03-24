@@ -23,12 +23,15 @@
         margin: 0;
       }
 
-      #compile-button {
+      .action-buttons { 
         position: absolute;
         right: 24px;
-        top: 8px;
-        padding: 8px 16px;
+        top: 8px;  
         z-index: 10;
+      }
+
+      .action-button {
+        padding: 4px 8px;
       }
 
       #input {
@@ -76,40 +79,54 @@
   </head>
 
   <body>
-    <textarea id="input" rows="8" spellcheck="false" placeholder="Type in some code and hit 'Compile'"></textarea>
-    <textarea id="output" rows="8" spellcheck="false" readonly placeholder="No output"></textarea>
-    <button id="compile-button" type="button">Compile</button>
+    <textarea id="input" 
+              spellcheck="false" 
+              placeholder="Type in some code and hit 'Compile'"></textarea>
+    <textarea id="output"
+              spellcheck="false" 
+              readonly 
+              placeholder="No output"></textarea>
+
+    <div class="action-buttons">
+      <button type="button" id="compile-button" class="action-button">Compile</button>
+      <button type="button" id="download-button" class="action-button">Download AMX</button>
+    </div>
 
     <script src="lib/codemirror/codemirror.js"></script>
     <script src="lib/codemirror/mode/clike/clike.js"></script>
     <script src="lib/codemirror/mode/javascript/javascript.js"></script>
     <script>
       var inputArea = document.getElementById('input');
-      var compileButton = document.getElementById('compile-button');
       var outputArea = document.getElementById('output');
+      var compileButton = document.getElementById('compile-button');
+      var downloadButton = document.getElementById('download-button');
       var startedCompilerOutput = false;
+      var lastCompileStatus = 0;
 
-      var sampleCode = 'main() {\n'
-        + '    // Your code goes here\n'
-        + '}\n';
-      var editor = CodeMirror.fromTextArea(inputArea, {
-        lineNumbers: true,
-        mode: 'text/x-c++src',
-        indentUnit: 4,
-        tabSize: 4,
-        indentWithTabs: false,
-        theme: 'github-light'
-      });
-      editor.setValue(sampleCode);
-      editor.focus();
-      editor.display.wrapper.id = 'editor';
+      function binaryToBase64(data /* UInt8Array */) {
+        var string = '';
+        for (var i = 0; i < data.byteLength; i++) {
+          string += String.fromCharCode(data[i]);
+        }
+        return btoa(string);
+      }
 
-      compileButton.addEventListener('click', function() {
-        compile();
-      });
+      function triggerFileDownload(data, fileName) {
+        var decoder = new TextDecoder('utf8');
+        var element = document.createElement('a');
+        element.setAttribute('href', 
+          'data:application/octet-stream;charset=utf-8;base64,' + binaryToBase64(data));
+        element.setAttribute('download', fileName);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
 
       function compile() {
+        startedCompilerOutput = false;
         outputArea.value = '';
+
         FS.writeFile('script.pwn', editor.getValue());
         var args = [
           'pawncc',
@@ -126,7 +143,9 @@
           stringToUTF8(value, buffer, bufferSize);
           setValue(argArray + i * 4, buffer, 'i32');
         }
-        ccall('pc_compile', 'number', ['number', 'number'], [args.length, argArray]);
+        lastCompileStatus = ccall('pc_compile', 
+          'number', ['number', 'number'], [args.length, argArray]);
+        downloadButton.disabled = lastCompileStatus != 0;
       }
 
       function appendOutput(text) {
@@ -137,7 +156,9 @@
       window.onerror = function(event) {
         Module.setStatus('Exception thrown, see JavaScript console');
         Module.setStatus = function(text) {
-          if (text) Module.printErr('[post-exception status] ' + text);
+          if (text) {
+            Module.printErr('[post-exception status] ' + text);
+          }
         };
       };
 
@@ -189,11 +210,39 @@
         totalDependencies: 0,
         monitorRunDependencies: function(left) {
           this.totalDependencies = Math.max(this.totalDependencies, left);
-          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+          Module.setStatus(left 
+            ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' 
+            : 'All downloads complete.');
         }
       };
 
       Module.setStatus('Downloading...');
+
+      var sampleCode = 'main() {\n'
+        + '    // Your code goes here\n'
+        + '}\n';
+      var editor = CodeMirror.fromTextArea(inputArea, {
+        lineNumbers: true,
+        mode: 'text/x-c++src',
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        theme: 'github-light'
+      });
+      editor.setValue(sampleCode);
+      editor.focus();
+      editor.display.wrapper.id = 'editor';
+
+      downloadButton.addEventListener('click', function() {
+        if (lastCompileStatus == 0) {
+          var data = FS.readFile('script.amx', {encoding: 'binary'});
+          triggerFileDownload(data, 'script.amx');
+        }
+      });
+
+      compileButton.addEventListener('click', function() {
+        compile();
+      });
     </script>
 
     <script async type="text/javascript" src="pawncc.js"></script>
