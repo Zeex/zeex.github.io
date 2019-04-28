@@ -4,7 +4,7 @@ title: Hello World!
 
 # About me
 
-[Check out my projects](projects)<br>
+[My projects](projects)<br>
 [My GitHub profile](https://github.com/Zeex)
 
 # Other links
