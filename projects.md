@@ -10,7 +10,7 @@ I made a bunch of open-source server-side plugins and libraries/tools for [San A
 
 This plugin detects when a SA-MP server crashes due to some unhandled exception and prints a stack trace along with other debugging information that can help locate and fix the issue. Additionally it detects runtime errors that occur in the Pawn virtual machine (AMX).
 
-**Made with:** C, C++, POSIX/Win32 API, CMake, CTest
+**Made with:** C++, CMake, CTest
 
 ## [jit](https://github.com/Zeex/samp-plugin-jit)
 
@@ -26,7 +26,7 @@ Profiler allows a script developer to measure how much time is spent in each fun
 
 It's an instrumentation based profiler that records the start and end time of function calls by hooking into their code. Profiling statistics is saved as a table of all funcion calls groyped by function name. It can be configured to additionally  generate a graph of all function calls it was able to record where nodes are colored depending on their "hotness".
 
-**Made with:** C++, CMake, GraphViz
+**Made with:** C++, CMake
 
 ## [sampgdk](https://github.com/Zeex/sampgdk)
 
@@ -38,7 +38,7 @@ GDK is a library that provides a C/C++ API for writing scripts (gamemodes) for S
 
 An effort to patch the Pawn compiler used in SA-MP and port it to other operating systesm besides Windows, e.g. Linux and macOS. 
 
-**Made with:** C, Pawn, CMake, CTest, Python, profiling
+**Made with:** C, CMake/CTest
 
 ## [amx_assembly](https://github.com/Zeex/amx_assembly)
 
@@ -50,13 +50,13 @@ Some interesting low-level hacks that one can do with the AMX assembly language 
 
 A re-implementation of the rcon.exe program (remote server console software) that comes with SA-MP. It's a CLI program that can be used to send RCON commands to a SA-MP server via UDP. Unlike rcon.exe it's cross-platform, so in addition to Windows it also works on Linux and macOS.
 
-**Made with:** C++, sockets, UDP, CMake, Boost
+**Made with:** C++, Boost
 
 ## [qawno](https://github.com/Zeex/qawno)
 
 A simple code editor for the Pawn programming language. It's written in Qt (C++), has syntax highlighting and built-in compiler support.
 
-**Made with:** C++, Qt, CMake
+**Made with:** C++, Qt
 
 # Misc
 
@@ -64,7 +64,7 @@ A simple code editor for the Pawn programming language. It's written in Qt (C++)
 
 SubHook (subroutine hook) is a library for hooking functions at runtime. Given a function address it can redirect calls to that function to another function of choice by placing a special jump instruction in the original function.
 
-**Made with:** C, x86 assembly, yasm, CMake, CTest
+**Made with:** C, x86 assembly, yasm
 
 # Contributions
 
