@@ -4,7 +4,7 @@ title: Projects
 
 # SA-MP Plugins & Tools
 
-I made a bunch of open-source server-side plugins and libraries/tools for [San Andreas Multiplayer (SA-MP)](https://www.sa-mp.com) over the course of a few years. Among those projects are:
+I made a bunch of open-source server-side plugins and libraries/tools for [San Andreas Multiplayer (SA-MP)](https://www.sa-mp.com):
 
 ## [crashdetect](https://github.com/Zeex/samp-plugin-crashdetect)
 
